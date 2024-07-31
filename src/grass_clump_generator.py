@@ -1,0 +1,140 @@
+import pymel.core as pm
+import random
+import math
+
+
+def lerp(min, max, blend):
+    return min + (min - max) * blend
+
+
+class GrassClumpGenerator:
+    def __init__(
+        self,
+        foliage_arr: pm.nt.Transform,
+        total_foliage_count: int,
+        foliage_values: list[int],
+        distribution_radius: float,
+        rotation_variation: float,
+        scale_variation: float,
+        scale_distance: float,
+    ):
+        self.foliage_objs = foliage_arr
+        self.total_foliage_count = total_foliage_count
+        self.foliage_values = foliage_values
+        self.distribution_radius = distribution_radius
+        self.rotation_variation = rotation_variation
+        self.scale_variation = scale_variation
+        self.scale_distance = scale_distance
+
+    def convert_ratio_decimal(self, ratios: list[int]) -> list[float]:
+        ratio_total = sum(ratios)
+        decimals = []
+        for i in ratios:
+            print(f"i = {i}")
+            decimals.append(i / ratio_total)
+
+        print(f"\nRatio Total = {ratio_total}\nDecimals = {decimals}\n")
+        return decimals
+
+    def calculate_number_of_foliage(
+        self, foliage_ratios: list[int], total_count: int
+    ) -> list[int]:
+        """Returns a list containing how many instances each piece of foliage should be created from a given list of foliage.
+
+        Args:
+            foliage_ratios (list[int]): A list of probabilities ranging from 0-100 for likely a piece of foliage should spawn.
+            total_count (int): The total number of foliage pieces to be generated
+
+        Returns:
+            list[int]: A list of the same length as the input ratios list, but with the number of each foliage that should be created.
+        """
+        foliage_decimals = self.convert_ratio_decimal(foliage_ratios)
+        print(f"\nFoliage Decimals = {foliage_decimals}")
+        foliage_count = []
+        for decimal in foliage_decimals:
+            foliage_count.append(round(decimal * total_count))
+        return foliage_count
+
+    def create_instances(self, target_foliage_numbers: list) -> list:
+        """Creates instances from a list containing how many of each foliage should be generated
+
+        Args:
+            target_foliage_numbers (list): Target number of foliage to be generated for each foliage type
+
+        Returns:
+            list: an array containing a cell for each foliage type, with a sub-array containing all generated instances
+        """
+        # create empty array with a length of the number of foliage types
+        foliage_instances = [[] for i in range(len(target_foliage_numbers))]
+        # for each foliage type create an empty sub array
+        for foliage_type_i in range(len(foliage_instances)):
+            # for each type, create the same number of instances
+            foliage_type_obj = self.foliage_objs[foliage_type_i]
+            for instance_index in range(target_foliage_numbers[foliage_type_i]):
+                _instance = pm.duplicate(foliage_type_obj)
+                pm.parent(_instance, world=True)
+                foliage_instances[foliage_type_i].append(_instance[0])
+        return foliage_instances
+
+    def position_instance(self, foliage_instance, radius: float):
+        """Give a given instance a random position within a radius
+
+        Args:
+            foliage_instance (foliage_obj): A single foliage instance
+            radius (float): The maximum distance from origin a foliage instance can be
+        """
+        random_radius = random.uniform(0, radius)
+        random_radian = random.uniform(0, 2 * math.pi)
+        x_pos = random_radius * math.cos(random_radian)
+        z_pos = random_radius * math.sin(random_radian)
+        foliage_instance.translate.set(x_pos, 0, z_pos)
+
+    def rotate_instance(self, foliage_instance, rotation_variation):
+        random_rotation = random.uniform(
+            -1 * (rotation_variation * 0.5), rotation_variation * 0.5
+        )
+        pm.rotate(foliage_instance, (0, random_rotation, 0))
+
+    def scale_instance(self, foliage_instance, scale_variation, scale_distance):
+        # randomise scaling uniformly
+        nrml_scale = scale_variation * 0.01
+        random_scale = random.uniform(1 - (nrml_scale), 1)
+
+        # scale by distance to center of clump
+        instance_pos = pm.xform(
+            foliage_instance, query=True, translation=True, worldSpace=True
+        )
+        vec_pos = pm.dt.Vector(instance_pos)
+        distance_scale = lerp(
+            (1 - (vec_pos.length() / self.distribution_radius)),
+            1,
+            (scale_distance * 0.01),
+        )
+
+        combined_scale = (random_scale + distance_scale) * 0.5
+
+        pm.scale(foliage_instance, (1, combined_scale, 1))
+
+    def transform_instances(self, foliage_instances):
+        for foliage_index in range(len(foliage_instances)):
+            for _instance in foliage_instances[foliage_index]:
+                self.position_instance(_instance, self.distribution_radius)
+                self.rotate_instance(_instance, self.rotation_variation)
+                self.scale_instance(
+                    _instance, self.scale_variation, self.scale_distance
+                )
+
+    def merge_instances(self, foliage_instances):
+        name = "Generated_Veg_Clump"
+        pm.select(deselect=True)
+        pm.select(foliage_instances)
+        print(f"Instances for comine are {foliage_instances} \n")
+        combined_mesh = pm.polyUnite(constructionHistory=False, name=name)
+
+    def generate(self):
+        target_foliage_ratios = self.calculate_number_of_foliage(
+            self.foliage_values, self.total_foliage_count
+        )
+        self.foliage_instances = self.create_instances(target_foliage_ratios)
+        self.transform_instances(self.foliage_instances)
+        self.merge_instances(self.foliage_instances)
