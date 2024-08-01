@@ -15,6 +15,7 @@ class UI_Manager:
         self.pymel_loading_bar.show()
 
     def create_main_ui(self):
+        reload(main_ui)
         self.main_ui = main_ui.ClumpGeneratorUI()
         self.main_ui.show(dockable=True)
 

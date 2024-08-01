@@ -2,6 +2,7 @@ from PySide2.QtCore import Qt
 from PySide2.QtWidgets import *
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 from grass_clump_generator.ui import ui_utils as ui_utils
+from grass_clump_generator.data import persitent_settings
 
 from importlib import reload
 
@@ -31,6 +32,9 @@ class SliderSpinBox:
 
     def on_slider_changed(self):
         self.spinbox.setValue(self.slider.value())
+        persitent_settings.write_value(
+            "Generator UI Values", self.label.text(), str(self.spinbox.value())
+        )
 
     def on_spinbox_changed(self):
         self.slider.setValue(self.spinbox.value())
@@ -51,6 +55,7 @@ class SliderSpinBox:
 class ClumpGeneratorUI(MayaQWidgetDockableMixin, QDialog):
     def __init__(self, parent=ui_utils.maya_main_window()):
         super(ClumpGeneratorUI, self).__init__(parent)
+
         self.setWindowTitle("Grass Clump Generator")
         self.setGeometry(100, 100, 300, 200)
 
@@ -143,6 +148,8 @@ class ClumpGeneratorUI(MayaQWidgetDockableMixin, QDialog):
 
     ## Listeners
     def select_pressed(self):
+        import pymel.core as pm
+
         self.transform_selection = pm.selected()
         self.post_sel_create_widgets()
         self.post_sel_setup_connections()
