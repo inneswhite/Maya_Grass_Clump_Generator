@@ -3,7 +3,7 @@ import maya.OpenMayaUI as omui
 import shiboken2
 import os
 import sys
-import ui
+import grass_clump_generator.ui.ui_utils as ui
 
 
 def maya_main_window():

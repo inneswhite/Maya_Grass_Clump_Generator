@@ -1,9 +1,9 @@
-import pymel.core as pm
 from PySide2.QtCore import Qt
 from PySide2.QtWidgets import *
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
-from grass_clump.ui import ui_utils as ui_utils
-from grass_clump.grass_clump_generator import GrassClumpGenerator
+from grass_clump_generator.ui import ui_utils as ui_utils
+from grass_clump_generator.main import GrassClumpGenerator
+from importlib import reload
 
 
 class SliderSpinBox:
@@ -169,10 +169,23 @@ class ClumpGeneratorUI(MayaQWidgetDockableMixin, QDialog):
         return foliage_values
 
 
+def create_ui():
+    import grass_clump_generator.ui.ui_loading as ui_loading
+
+    reload(ui_loading)
+    pymel_loading_bar = ui_loading.LoadingBar(
+        title="Loading PyMEL", loading_message="Loading PyMEL"
+    )
+    pymel_loading_bar.show()
+
+    import pymel.core as pm
+
+    clump_generator_ui = ClumpGeneratorUI()
+    clump_generator_ui.show(dockable=True)
+
+
 if __name__ == "__main__":
-    from importlib import reload
     import grass_clump.grass_clump_generator
 
     reload(grass_clump.grass_clump_generator)
-    clump_generator_ui = ClumpGeneratorUI()
-    clump_generator_ui.show(dockable=True)
+    create_ui()
