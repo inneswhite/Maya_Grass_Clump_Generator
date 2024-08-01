@@ -1,7 +1,7 @@
-import grass_clump_generator.ui.ui_grass_clump_generator as ui
+import grass_clump_generator.ui.ui_manager
 from importlib import reload
 
 
 def run():
-    reload(ui)
-    ui.create_ui()
+    reload(grass_clump_generator.ui.ui_manager)
+    grass_clump_generator.ui.ui_manager._ui_manager.create_loading_ui()

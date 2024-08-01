@@ -2,7 +2,7 @@ from PySide2.QtCore import Qt
 from PySide2.QtWidgets import *
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 from grass_clump_generator.ui import ui_utils as ui_utils
-from grass_clump_generator.main import GrassClumpGenerator
+
 from importlib import reload
 
 
@@ -149,6 +149,8 @@ class ClumpGeneratorUI(MayaQWidgetDockableMixin, QDialog):
         self.pose_sel_layouts()
 
     def on_generate_clump_pressed(self):
+        from grass_clump_generator.main import GrassClumpGenerator
+
         self.grass_clump_generator = GrassClumpGenerator(
             foliage_arr=self.transform_selection,
             total_foliage_count=self.sbox_total_foliage.value(),
@@ -167,25 +169,3 @@ class ClumpGeneratorUI(MayaQWidgetDockableMixin, QDialog):
         for slider in foliage_slider_arr:
             foliage_values.append(slider.get_slider_value())
         return foliage_values
-
-
-def create_ui():
-    import grass_clump_generator.ui.ui_loading as ui_loading
-
-    reload(ui_loading)
-    pymel_loading_bar = ui_loading.LoadingBar(
-        title="Loading PyMEL", loading_message="Loading PyMEL"
-    )
-    pymel_loading_bar.show()
-
-    import pymel.core as pm
-
-    clump_generator_ui = ClumpGeneratorUI()
-    clump_generator_ui.show(dockable=True)
-
-
-if __name__ == "__main__":
-    import grass_clump.grass_clump_generator
-
-    reload(grass_clump.grass_clump_generator)
-    create_ui()
