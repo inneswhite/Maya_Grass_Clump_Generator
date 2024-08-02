@@ -1,56 +1,10 @@
-from PySide2.QtCore import Qt
 from PySide2.QtWidgets import *
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
-from grass_clump_generator.ui import ui_utils as ui_utils
+from grass_clump_generator.ui import ui_utils
+from grass_clump_generator.ui.ui_slider_spinbox import SliderSpinBox
 from grass_clump_generator.data import persitent_settings
 
 from importlib import reload
-
-
-class SliderSpinBox:
-    def __init__(self, name: str, min: int, max: int, value: int):
-        self.label = QLabel(name)
-        self.label.setMinimumWidth(100)
-
-        self.slider = QSlider(Qt.Horizontal)
-        self.slider.setMinimum(min)
-        self.slider.setMaximum(max)
-        self.slider.setValue(value)
-        self.slider.valueChanged.connect(self.on_slider_changed)
-
-        self.spinbox = QSpinBox()
-        self.spinbox.setMinimumWidth(50)
-        self.spinbox.setMinimum(min)
-        self.spinbox.setMaximum(max)
-        self.spinbox.setValue(value)
-        self.spinbox.valueChanged.connect(self.on_spinbox_changed)
-
-        self.layout_sliderspinbox = QHBoxLayout()
-        self.layout_sliderspinbox.addWidget(self.label)
-        self.layout_sliderspinbox.addWidget(self.slider)
-        self.layout_sliderspinbox.addWidget(self.spinbox)
-
-    def on_slider_changed(self):
-        self.spinbox.setValue(self.slider.value())
-        persitent_settings.write_value(
-            "Generator UI Values", self.label.text(), str(self.spinbox.value())
-        )
-
-    def on_spinbox_changed(self):
-        self.slider.setValue(self.spinbox.value())
-
-    def get_sliderspinbox_layout(self):
-        return self.layout_sliderspinbox
-
-    def get_slider(self) -> QSlider:
-        return self.slider
-
-    def get_slider_value(self) -> int:
-        return self.slider.value()
-
-    def get_spinbox(self) -> QSpinBox:
-        return self.spinbox
-
 
 class ClumpGeneratorUI(MayaQWidgetDockableMixin, QDialog):
     def __init__(self, parent=ui_utils.maya_main_window()):
@@ -84,13 +38,13 @@ class ClumpGeneratorUI(MayaQWidgetDockableMixin, QDialog):
         self.lbl_total_foliage = QLabel("Total Foliage Meshes")
         self.sbox_total_foliage = QSpinBox()
         self.sbox_total_foliage.setMaximum(1000)
-        self.sbox_total_foliage.setValue(5)
+        self.sbox_total_foliage.setValue(int(self.load_persistent(5, self.lbl_total_foliage.text())))
 
         self.gbox_distribution_settings = QGroupBox("Settings")
         self.lbl_radius = QLabel("Radius")
         self.sbox_radius = QSpinBox()
         self.sbox_radius.setMaximum(1000)
-        self.sbox_radius.setValue(10)
+        self.sbox_radius.setValue(int(self.load_persistent(10, self.lbl_radius.text())))
 
         self.lbl_rot = QLabel("Rotation Variation")
         self.sld_sbox_rot = SliderSpinBox("Rotation Variation", 0, 360, 360)
@@ -101,6 +55,10 @@ class ClumpGeneratorUI(MayaQWidgetDockableMixin, QDialog):
 
     def post_sel_setup_connections(self):
         self.btn_generate_clump.clicked.connect(self.on_generate_clump_pressed)
+
+        self.sbox_total_foliage.valueChanged.connect(lambda: self.store_value(self.sbox_total_foliage, self.lbl_total_foliage.text()))
+        self.sbox_radius.valueChanged.connect(lambda: self.store_value(self.sbox_radius, self.lbl_radius.text()))
+
 
     def pose_sel_layouts(self):
         self.layout_total_foliage = QHBoxLayout()
@@ -169,6 +127,9 @@ class ClumpGeneratorUI(MayaQWidgetDockableMixin, QDialog):
         )
         self.grass_clump_generator.generate()
 
+    def store_value(self, widget, name):
+        persitent_settings.write_value(persitent_settings.HEADER_UI_VALUES, str(name), str(widget.value()))
+
     def get_foliage_values_arr(
         self, foliage_slider_arr: list[SliderSpinBox]
     ) -> list[int]:
@@ -176,3 +137,9 @@ class ClumpGeneratorUI(MayaQWidgetDockableMixin, QDialog):
         for slider in foliage_slider_arr:
             foliage_values.append(slider.get_slider_value())
         return foliage_values
+    
+    def load_persistent(self, fallback, name):
+        if persitent_settings.read_value(persitent_settings.HEADER_UI_VALUES, name):
+            return persitent_settings.read_value(persitent_settings.HEADER_UI_VALUES, name)
+        else:
+            return fallback
