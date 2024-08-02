@@ -27,9 +27,13 @@ def read_value(header: str, key: str):
     config = configparser.ConfigParser()
     config.read(get_config_path())
 
-    key = strings.space_to_underscore(key)
+    if header in config:
+        key = strings.space_to_underscore(key)
+        if key in config[header]:
+            return config[header][key]
+    pass
 
-    return config[header][key]
+    
 
 
 def reset_preferences():
