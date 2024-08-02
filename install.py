@@ -5,7 +5,7 @@ import maya
 
 def onMayaDroppedPythonFile(arg):
     srcDir = os.path.join(os.path.dirname(__file__), "src")
-    iconDir = os.path.join(os.path.dirname(__file__), "icons", "button_icon.png")
+    iconDir = os.path.join(os.path.dirname(__file__), "resources", "icons", "button_icon.png")
 
     srcDir = os.path.normpath(srcDir)
     iconDir = os.path.normpath(iconDir)

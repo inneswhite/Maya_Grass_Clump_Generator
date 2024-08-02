@@ -114,7 +114,7 @@ class ClumpGeneratorUI(MayaQWidgetDockableMixin, QDialog):
         self.pose_sel_layouts()
 
     def on_generate_clump_pressed(self):
-        from grass_clump_generator.main import GrassClumpGenerator
+        from grass_clump_generator.clump_generator import GrassClumpGenerator
 
         self.grass_clump_generator = GrassClumpGenerator(
             foliage_arr=self.transform_selection,
