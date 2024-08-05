@@ -40,8 +40,8 @@ def load_and_configure_arnold_render():
                 pm.setAttr("defaultArnoldRenderOptions.renderDevice", 0)
                 pm.setAttr("defaultArnoldRenderOptions.abortOnError", 0)
             except Exception:
+                print(f"\n{pm.stackTrace()}")
                 print("\nError loading Arnold MtoA Plugin !!!")
-                traceback_print_exc()
                 return 1
             else:
                 return 0
@@ -55,8 +55,8 @@ def load_and_configure_arnold_render():
                 pm.setAttr("defaultArnoldRenderOptions.abortOnError", 0)
                 pm.arnoldFlushCache(flushall=True)
             except Exception:
-                print("\nError while configuring Arnold")
                 print(f"\n{pm.stackTrace()}")
+                print("\nError while configuring Arnold")
                 return 1
             else:
                 return 0
