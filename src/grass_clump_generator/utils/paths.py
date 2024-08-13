@@ -35,7 +35,7 @@ def diff_paths(path1: str, path2: str) -> list[str]:
         path2 (str): the second path to compare for diff
 
     Returns:
-        list[str]: [difference in path1, difference in path2]
+        list[str]: [path1 - path2, path2 - ath1]
     """
 
     return [path2.replace(path1, ""), path2.replace(path1, "")]

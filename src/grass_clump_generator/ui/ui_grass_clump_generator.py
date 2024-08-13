@@ -1,6 +1,10 @@
 from PySide2.QtWidgets import *
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 from grass_clump_generator.ui import ui_utils
+from grass_clump_generator import main
+from grass_clump_generator.data import persistent_settings as ps
+
+# UI Class Imports
 from grass_clump_generator.ui.ui_foliage_distributions import FoliageDistributionsUI
 from grass_clump_generator.ui.ui_clump_settings import ClumpGenerationSettingsUI
 from grass_clump_generator.ui.ui_slider_spinbox import SliderSpinBox
@@ -24,12 +28,25 @@ class ClumpGeneratorUI(MayaQWidgetDockableMixin, QDialog):
 
     ## Listeners
     def create_ui(self):
+        """Generates the main UI elements for the tool.
+        Called after Get Foliage from Selection is pressed
+        """
         import pymel.core as pm
 
         self.btn_select_foliage.setHidden(True)
 
+        # Write fresh selection values to .ini
+        ps.clear_section(ps.HEADER_SOURCE_MESHES)
+        for index, obj in enumerate(pm.selected()):
+            if obj.name():
+                ps.write_value(
+                    ps.HEADER_SOURCE_MESHES, f"source_mesh_{index}", obj.name()
+                )
+        self.foliage_src = pm.selected()
+
+        # Generate the foliage distributions settins setting
         gbox_foliage_distributions = QGroupBox("Foliage Distributions")
-        self.foliage_distribution_ui = FoliageDistributionsUI(pm.selected())
+        self.foliage_distribution_ui = FoliageDistributionsUI(self.foliage_src)
         gbox_foliage_distributions.setLayout(self.foliage_distribution_ui.layout)
         self.main_layout.addWidget(gbox_foliage_distributions)
 
@@ -46,22 +63,11 @@ class ClumpGeneratorUI(MayaQWidgetDockableMixin, QDialog):
         self.main_layout.addWidget(gbox_billboard_settings)
 
         self.btn_generate_clump = QPushButton("Generate Clump")
+        self.btn_generate_clump.clicked.connect(self.on_generate_clump_pressed)
         self.main_layout.addWidget(self.btn_generate_clump)
 
     def on_generate_clump_pressed(self):
-        from grass_clump_generator.clump_generator import GrassClumpGenerator
-
-        self.grass_clump_generator = GrassClumpGenerator(
-            foliage_arr=self.transform_selection,
-            total_foliage_count=self.sbox_total_foliage.value(),
-            foliage_values=self.get_foliage_values_arr(self.sliderspinbox_foliage_arr),
-            distribution_radius=self.sbox_radius.value(),
-            rotation_variation=self.sld_sbox_rot.get_slider_value(),
-            scale_variation=self.sld_sbox_scale_variance.get_slider_value(),
-            scale_distance=self.sld_sbox_scale_distance.get_slider_value(),
-            render_billboards=self.billboard_settings_ui.get_render_enabled(),
-        )
-        self.grass_clump_generator.generate()
+        main.generate_clump()
 
     def get_foliage_values_arr(
         self, foliage_slider_arr: list[SliderSpinBox]

@@ -18,7 +18,6 @@ def get_all_submodules(module) -> list[str]:
     dir = os.path.abspath(paths.get_module_path(module))
     modules = []
     for root, directory, filename in os.walk(dir):
-        print(f"root:\t{root}\ndirectory\t{directory}\nfile\t{filename}\n\n")
         for file in filename:
             if file.endswith(".py") and file != "__init__.py":
                 file = file.replace(".py", "")
@@ -35,20 +34,25 @@ def reimport_modules(base_module):
     Args:
         dir (str): Root directory from which to search for modules
     """
-    print("\n Reimporting all Python Modules... \n")
+    print("\nReimporting all Python Modules... \n")
 
     # Iterate over all the files in the directory
-    for module in get_all_submodules(base_module):
+    import_count = 0
+    submodules = get_all_submodules(base_module)
+    for module in submodules:
         # Import the module if it's not already imported
         if module in sys.modules:
             module = sys.modules[module]
         else:
             # Import the module (note: this assumes the module is in the directory or PYTHONPATH)
             module = import_module(module)
+            import_count += import_count
 
         # Reload the module
         reload(module)
-        print(f"Reloaded: {module}")
+    print(
+        f"Reloaded {str(len(submodules))} submodules.\nImported {import_count} new modules.\n"
+    )
 
 
 if __name__ == "__main__":

@@ -1,44 +1,44 @@
-import grass_clump_generator.ui.ui_billboard_settings
-import grass_clump_generator.ui.ui_clump_settings
-import grass_clump_generator.ui.ui_foliage_distributions
-import grass_clump_generator.ui.ui_grass_clump_generator
-from grass_clump_generator.ui import ui_manager
-import grass_clump_generator.data.persistent_settings
 from importlib import reload
 
-import grass_clump_generator.utils
-import grass_clump_generator.utils.modules
-from .utils import modules, paths
-import grass_clump_generator.ui.ui_slider_spinbox
-import grass_clump_generator.ui.ui_utils
-
-
-def reload_pypackages():
-    """_summary_"""
-    reload(grass_clump_generator.data.persistent_settings)
-    reload(grass_clump_generator.ui.ui_slider_spinbox)
-    reload(grass_clump_generator.ui.ui_manager)
-    reload(grass_clump_generator.ui.ui_grass_clump_generator)
-    reload(grass_clump_generator.ui.ui_clump_settings)
-    reload(grass_clump_generator.ui.ui_foliage_distributions)
-    reload(grass_clump_generator.ui.ui_utils)
-    reload(grass_clump_generator.ui.ui_billboard_settings)
-
+from .ui import ui_manager
+from .utils import modules
+from .clump_generator import GrassClumpGenerator
+from .data import persistent_settings as ps
 
 _ui_manager = ui_manager.UI_Manager()
 
 
 ## callbacks
 def tool_loaded():
+    print("PyMEL succesfully loaded")
     _ui_manager.create_main_ui()
 
 
 def generate_clump():
-    pass
+    ## Create clump generator object
+
+    clump_generator = GrassClumpGenerator(
+        total_foliage_count=ps.read_value(ps.HEADER_UI_VALUES, "total_foliage_meshes"),
+        distribution_radius=float(ps.read_value(ps.HEADER_UI_VALUES, "radius")),
+        rotation_variation=float(
+            ps.read_value(ps.HEADER_UI_VALUES, "rotation_variation")
+        ),
+        scale_variation=float(ps.read_value(ps.HEADER_UI_VALUES, "scale_variation")),
+        scale_distance=float(ps.read_value(ps.HEADER_UI_VALUES, "scale_by_radius")),
+        render_billboards=ps.read_value(ps.HEADER_UI_VALUES, "render_enabled"),
+        render_name=ps.read_value(ps.HEADER_UI_VALUES, "export_name"),
+        render_resolution=[
+            int(ps.read_value(ps.HEADER_UI_VALUES, "res_width")),
+            int(ps.read_value(ps.HEADER_UI_VALUES, "res_height")),
+        ],
+    )
+    clump_generator.generate()
 
 
 def start():
     """Called on startup"""
+    import grass_clump_generator.utils.modules
+
     reload(grass_clump_generator.utils.modules)
     modules.reimport_modules(grass_clump_generator)
     _ui_manager.create_loading_ui()

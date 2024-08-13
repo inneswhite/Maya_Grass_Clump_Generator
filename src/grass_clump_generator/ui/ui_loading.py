@@ -52,7 +52,7 @@ class LoadingBar(MayaQWidgetDockableMixin, QDialog):
                 self.ellipses += "."
 
     def import_pymel(self):
-        print("importing pymel")
+        print("Importing PyMEL...")
         maya.utils.executeInMainThreadWithResult(self.import_pymel_main_thread)
 
     def import_pymel_main_thread(self):

@@ -3,6 +3,7 @@ import random
 import math
 from grass_clump_generator.rendering.camera import BillboardCameras
 import grass_clump_generator.rendering.render as renderer
+import grass_clump_generator.data.persistent_settings as ps
 
 
 def lerp(min, max, blend):
@@ -12,20 +13,30 @@ def lerp(min, max, blend):
 class GrassClumpGenerator:
     def __init__(
         self,
-        foliage_arr,
-        total_foliage_count: int,
-        foliage_values: list[int],
-        distribution_radius: float,
-        rotation_variation: float,
-        scale_variation: float,
-        scale_distance: float,
-        render_billboards: bool,
-        render_name: str,
-        render_resolution: list[int],
+        foliage_arr=["undefined"],
+        total_foliage_count: int = 100,
+        distribution_radius: float = 5,
+        rotation_variation: float = 360,
+        scale_variation: float = 20,
+        scale_distance: float = 20,
+        render_billboards: bool = True,
+        render_name: str = "render",
+        render_resolution: list[int] = [512, 512],
     ):
-        self.foliage_objs = foliage_arr
+        import pymel.core as pm
+
+        foliage_names = ps.read_value(ps.HEADER_SOURCE_MESHES)
+        print(f"foliage names: {foliage_names}")
+        self.foliage_values = []
+        self.foliage_objs = []
+        if foliage_arr == ["undefined"]:
+            for name in foliage_names:
+                self.foliage_objs.append(pm.PyNode(name))
+                self.foliage_values.append(
+                    int(ps.read_value(ps.HEADER_UI_VALUES, name))
+                )
+
         self.total_foliage_count = total_foliage_count
-        self.foliage_values = foliage_values
         self.distribution_radius = distribution_radius
         self.rotation_variation = rotation_variation
         self.scale_variation = scale_variation
@@ -37,6 +48,7 @@ class GrassClumpGenerator:
         self.render_resolution = render_resolution
 
     def convert_ratio_decimal(self, ratios: list[int]) -> list[float]:
+        print(f"ratios = {ratios}")
         ratio_total = sum(ratios)
         decimals = []
         for i in ratios:
@@ -59,10 +71,10 @@ class GrassClumpGenerator:
             list[int]: A list of the same length as the input ratios list, but with the number of each foliage that should be created.
         """
         foliage_decimals = self.convert_ratio_decimal(foliage_ratios)
-        print(f"\nFoliage Decimals = {foliage_decimals}")
+        print(f"\nFoliage Decimals = {foliage_decimals}\nTotal Count = {total_count}")
         foliage_count = []
         for decimal in foliage_decimals:
-            foliage_count.append(round(decimal * total_count))
+            foliage_count.append(round(float(decimal) * float(total_count)))
         return foliage_count
 
     def create_instances(self, target_foliage_numbers: list) -> list:
@@ -74,6 +86,8 @@ class GrassClumpGenerator:
         Returns:
             list: an array containing a cell for each foliage type, with a sub-array containing all generated instances
         """
+        import pymel.core as pm
+
         # create empty array with a length of the number of foliage types
         foliage_instances = [[] for i in range(len(target_foliage_numbers))]
         # for each foliage type create an empty sub array
@@ -100,6 +114,8 @@ class GrassClumpGenerator:
         foliage_instance.translate.set(x_pos, 0, z_pos)
 
     def rotate_instance(self, foliage_instance, rotation_variation):
+        import pymel.core as pm
+
         random_rotation = random.uniform(
             -1 * (rotation_variation * 0.5), rotation_variation * 0.5
         )
@@ -107,6 +123,8 @@ class GrassClumpGenerator:
 
     def scale_instance(self, foliage_instance, scale_variation, scale_distance):
         # randomise scaling uniformly
+        import pymel.core as pm
+
         nrml_scale = scale_variation * 0.01
         random_scale = random.uniform(1 - (nrml_scale), 1)
 
@@ -140,12 +158,13 @@ class GrassClumpGenerator:
         name = "Generated_Veg_Clump"
         pm.select(deselect=True)
         pm.select(foliage_instances)
-        print(f"Instances for comine are {foliage_instances} \n")
-        combined_mesh = pm.polyUnite(constructionHistory=False, name=name)
+        print(f"Instances for combine are {foliage_instances} \n")
+        return pm.polyUnite(constructionHistory=False, name=name)
 
     def generate(self):
         """Begin Grass Clump Generation"""
 
+        print(f"Generating foliage from {self.foliage_objs}")
         # Calculate foliage ratios from UI values
         target_foliage_ratios = self.calculate_number_of_foliage(
             self.foliage_values, self.total_foliage_count
