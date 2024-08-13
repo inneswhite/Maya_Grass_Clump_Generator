@@ -4,6 +4,7 @@ from grass_clump_generator.ui import ui_utils
 from grass_clump_generator.ui.ui_foliage_distributions import FoliageDistributionsUI
 from grass_clump_generator.ui.ui_clump_settings import ClumpGenerationSettingsUI
 from grass_clump_generator.ui.ui_slider_spinbox import SliderSpinBox
+from grass_clump_generator.ui.ui_billboard_settings import BillboardSettings
 
 
 class ClumpGeneratorUI(MayaQWidgetDockableMixin, QDialog):
@@ -39,6 +40,11 @@ class ClumpGeneratorUI(MayaQWidgetDockableMixin, QDialog):
         )
         self.main_layout.addWidget(gbox_clump_generation_settings)
 
+        self.billboard_settings_ui = BillboardSettings()
+        gbox_billboard_settings = QGroupBox("Billboard Settings")
+        gbox_billboard_settings.setLayout(self.billboard_settings_ui.layout)
+        self.main_layout.addWidget(gbox_billboard_settings)
+
         self.btn_generate_clump = QPushButton("Generate Clump")
         self.main_layout.addWidget(self.btn_generate_clump)
 
@@ -53,6 +59,7 @@ class ClumpGeneratorUI(MayaQWidgetDockableMixin, QDialog):
             rotation_variation=self.sld_sbox_rot.get_slider_value(),
             scale_variation=self.sld_sbox_scale_variance.get_slider_value(),
             scale_distance=self.sld_sbox_scale_distance.get_slider_value(),
+            render_billboards=self.billboard_settings_ui.get_render_enabled(),
         )
         self.grass_clump_generator.generate()
 

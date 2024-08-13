@@ -18,6 +18,3 @@ class UI_Manager:
         reload(main_ui)
         self.main_ui = main_ui.ClumpGeneratorUI()
         self.main_ui.show(dockable=True)
-
-
-_ui_manager = UI_Manager()

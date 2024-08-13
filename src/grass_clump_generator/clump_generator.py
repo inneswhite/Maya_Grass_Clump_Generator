@@ -1,6 +1,8 @@
 # import pymel.core as pm
 import random
 import math
+from grass_clump_generator.rendering.camera import BillboardCameras
+import grass_clump_generator.rendering.render as renderer
 
 
 def lerp(min, max, blend):
@@ -10,13 +12,16 @@ def lerp(min, max, blend):
 class GrassClumpGenerator:
     def __init__(
         self,
-        foliage_arr: pm.nt.Transform,
+        foliage_arr,
         total_foliage_count: int,
         foliage_values: list[int],
         distribution_radius: float,
         rotation_variation: float,
         scale_variation: float,
         scale_distance: float,
+        render_billboards: bool,
+        render_name: str,
+        render_resolution: list[int],
     ):
         self.foliage_objs = foliage_arr
         self.total_foliage_count = total_foliage_count
@@ -25,6 +30,11 @@ class GrassClumpGenerator:
         self.rotation_variation = rotation_variation
         self.scale_variation = scale_variation
         self.scale_distance = scale_distance
+
+        # render params
+        self.render_billboards = render_billboards
+        self.render_name = render_name
+        self.render_resolution = render_resolution
 
     def convert_ratio_decimal(self, ratios: list[int]) -> list[float]:
         ratio_total = sum(ratios)
@@ -125,6 +135,8 @@ class GrassClumpGenerator:
                 )
 
     def merge_instances(self, foliage_instances):
+        import pymel.core as pm
+
         name = "Generated_Veg_Clump"
         pm.select(deselect=True)
         pm.select(foliage_instances)
@@ -132,9 +144,25 @@ class GrassClumpGenerator:
         combined_mesh = pm.polyUnite(constructionHistory=False, name=name)
 
     def generate(self):
+        """Begin Grass Clump Generation"""
+
+        # Calculate foliage ratios from UI values
         target_foliage_ratios = self.calculate_number_of_foliage(
             self.foliage_values, self.total_foliage_count
         )
+
+        # Grass Clump mesh
         self.foliage_instances = self.create_instances(target_foliage_ratios)
         self.transform_instances(self.foliage_instances)
         self.merge_instances(self.foliage_instances)
+
+        # Render billboard
+        if not self.render_billboards:
+            return 0
+
+        camera_render = BillboardCameras()
+        camera_render.create_cameras()
+
+        renderer.render_billboard(
+            camera_render.get_cameras(), self.render_name, self.render_resolution
+        )

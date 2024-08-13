@@ -135,24 +135,24 @@ def prerender_settings(
         return 1
 
 
+def render_billboard(render_cams: list, base_name: str, resolution: list[int]):
+
+    if (
+        prerender_settings(
+            paths.get_maya_images_dir(),
+            base_name,
+            render_cams.get_cameras()[0][0].name(),
+            "exr",
+            resolution[0],
+            resolution[1],
+        )
+        == 0
+    ):
+        pm.arnoldRender(camera=render_cams.get_cameras()[0][0].name())
+
+
 if __name__ == "__main__":
     from importlib import reload
     import pymel.core as pm
 
     reload(grass_clump_generator.rendering.camera)
-
-    camera_render = BillboardCameras()
-    camera_render.create_cameras()
-
-    if (
-        prerender_settings(
-            paths.get_images_dir(),
-            "Render",
-            camera_render.get_cameras()[0][0].name(),
-            "exr",
-            512,
-            512,
-        )
-        == 0
-    ):
-        pm.arnoldRender(camera=camera_render.get_cameras()[0][0].name())

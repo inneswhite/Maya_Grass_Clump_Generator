@@ -5,7 +5,9 @@ import maya
 
 def onMayaDroppedPythonFile(arg):
     srcDir = os.path.join(os.path.dirname(__file__), "src")
-    iconDir = os.path.join(os.path.dirname(__file__), "resources", "icons", "button_icon.png")
+    iconDir = os.path.join(
+        os.path.dirname(__file__), "resources", "icons", "button_icon.png"
+    )
 
     srcDir = os.path.normpath(srcDir)
     iconDir = os.path.normpath(iconDir)
@@ -27,7 +29,7 @@ if r'{dir}' not in sys.path:
 
 import grass_clump_generator
 reload(grass_clump_generator)
-grass_clump_generator.run()
+grass_clump_generator.start()
     """.format(
         dir=srcDir
     )

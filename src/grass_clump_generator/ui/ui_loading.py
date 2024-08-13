@@ -4,6 +4,7 @@ from PySide2.QtWidgets import *
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 import threading
 import maya.utils
+import grass_clump_generator.main as main
 
 
 class LoadingBar(MayaQWidgetDockableMixin, QDialog):
@@ -57,7 +58,7 @@ class LoadingBar(MayaQWidgetDockableMixin, QDialog):
     def import_pymel_main_thread(self):
         import pymel.core
 
-        grass_clump_generator.ui.ui_manager._ui_manager.create_main_ui()
+        main.tool_loaded()
         self.close()
 
     def on_close(self, event):
