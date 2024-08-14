@@ -136,19 +136,20 @@ def prerender_settings(
 
 
 def render_billboard(render_cams: list, base_name: str, resolution: list[int]):
+    import pymel.core as pm
 
     if (
         prerender_settings(
             paths.get_maya_images_dir(),
             base_name,
-            render_cams.get_cameras()[0][0].name(),
+            render_cams[0][0].name(),
             "exr",
             resolution[0],
             resolution[1],
         )
         == 0
     ):
-        pm.arnoldRender(camera=render_cams.get_cameras()[0][0].name())
+        pm.arnoldRender(camera=render_cams[0][0].name())
 
 
 if __name__ == "__main__":
