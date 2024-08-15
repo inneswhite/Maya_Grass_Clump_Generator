@@ -1,7 +1,9 @@
 from importlib import reload
+import os
 
+from PIL import Image
 from .ui import ui_manager
-from .utils import modules, paths
+from .utils import modules, paths, image
 from .clump_generator import GrassClumpGenerator
 from .data import persistent_settings as ps
 from .rendering import render, camera
@@ -53,12 +55,21 @@ def generate_clump():
     cameras = camera_render.get_cameras()
 
     print("Configuring Render Settings...")
+
+    temp_render_dir = paths.get_maya_temp_images_dir()
+    temp_front_base_name = (
+        f"temp_{render_out_name}_{camera_render.get_cameras()[0][0].name()}"
+    )
+    temp_right_base_name = (
+        f"temp_{render_out_name}_{camera_render.get_cameras()[1][0].name()}"
+    )
+
     # configure render settings
     if not render.prerender_settings(
         camera_name=camera_render.get_cameras()[0][0].name(),
-        output_dir=paths.get_maya_images_dir(),
-        image_base_name=render_out_name,
-        image_format="exr",
+        output_dir=temp_render_dir,
+        image_base_name=temp_front_base_name,
+        image_format="tif",
         width=render_res[0],
         height=render_res[1],
     ):
@@ -69,6 +80,50 @@ def generate_clump():
 
     print("Rendering Textures...")
     pm.arnoldRender(camera=cameras[0][0].name())
+
+    if not render.prerender_settings(
+        camera_name=camera_render.get_cameras()[1][0].name(),
+        output_dir=temp_render_dir,
+        image_base_name=temp_right_base_name,
+        image_format="tif",
+        width=render_res[0],
+        height=render_res[1],
+    ):
+        raise Exception("Configure Render settings failed")
+    pm.arnoldRender(camera=cameras[1][0].name())
+
+    # get renders
+    wildcard_pattern = "*.tif"
+    front_render_path = paths.find_matching_files(
+        temp_render_dir, temp_front_base_name + wildcard_pattern
+    )
+    if len(front_render_path) > 1:
+        raise Exception(
+            f"{len(front_render_path)} files match search query; {temp_render_dir} + {wildcard_pattern}"
+        )
+    elif not front_render_path:
+        raise Exception(f"no matches for file search in {temp_render_dir}")
+
+    right_render_path = paths.find_matching_files(
+        temp_render_dir, temp_right_base_name + wildcard_pattern
+    )
+    print(f"\n\nRIGHT RENDER PATH = {right_render_path}\n\n")
+    if len(right_render_path) > 1:
+        raise Exception(
+            f"{len(right_render_path)} files match search query; {temp_render_dir} + {wildcard_pattern}"
+        )
+    elif not right_render_path:
+        raise Exception(f"no matches for file search in {temp_render_dir}")
+
+    # merge renders
+    front_image = image.get_image(front_render_path[0])
+    right_image = image.get_image(right_render_path[0])
+
+    merged_image = image.merge_images_vert(front_image, right_image)
+    merged_output_name = os.path.join(
+        paths.get_maya_images_dir(), (render_out_name + ".tif")
+    )
+    merged_image.save(merged_output_name)
 
 
 def start():

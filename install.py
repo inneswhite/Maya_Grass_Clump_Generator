@@ -12,13 +12,9 @@ def onMayaDroppedPythonFile(arg):
     srcDir = os.path.normpath(srcDir)
     iconDir = os.path.normpath(iconDir)
 
-    print(f"\n{srcDir}\n")
     # Check if tool is installed
     if srcDir not in sys.path:
         sys.path.insert(0, srcDir)
-
-    for path in sys.path:
-        print(f"{path}\n")
 
     button_command = """
 from importlib import reload

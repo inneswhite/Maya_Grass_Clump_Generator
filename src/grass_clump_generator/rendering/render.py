@@ -69,7 +69,7 @@ def prerender_settings(
     camera_name: str,
     output_dir: str,
     image_base_name: str = "clump_render",
-    image_format: str = "exr",
+    image_format: str = "tif",
     width: int = 512,
     height: int = 512,
 ):
@@ -93,10 +93,7 @@ def prerender_settings(
     # Create output dir if not exists.
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    # Create output file name with camera name and resolution parametrs.
-    output_file_base_name = ("{}__cam_{}_{}x{}_frame").format(
-        image_base_name, camera_name, str(width), str(height)
-    )
+    full_output_path = os.path.join(output_dir, image_base_name)
 
     if load_and_configure_arnold_render() == 0:
         # Set "defaultArnoldRenderOptions" "renderGlobals" attribute from "defaultRenderGlobals" node attributes.
@@ -114,7 +111,6 @@ def prerender_settings(
 
         # resolution
         pix_aspect = width / height
-        pix_device_aspect = pm.getAttr("defaultResolution.deviceAspectRatio")
 
         pm.setAttr("defaultResolution.width", width)
         pm.setAttr("defaultResolution.height", height)
@@ -122,9 +118,7 @@ def prerender_settings(
         pm.setAttr("defaultResolution.deviceAspectRatio", pix_aspect)
 
         # Set defaultRenderGlobals attributes for prefix (replace default render path)
-        pm.setAttr(
-            "defaultRenderGlobals.imageFilePrefix", output_file_base_name, type="string"
-        )
+        pm.setAttr("defaultRenderGlobals.imageFilePrefix", full_output_path)
         pm.setAttr("defaultRenderGlobals.useFrameExt", 1)
         pm.setAttr("defaultRenderGlobals.useMayaFileName", 1)
 

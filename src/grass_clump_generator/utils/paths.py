@@ -1,6 +1,7 @@
 import pymel.core as pm
 import os
 import sys
+import glob
 
 
 def get_module_path(module) -> str:
@@ -22,6 +23,18 @@ def get_maya_images_dir() -> str:
         str: Maya Project Images directory path
     """
     return os.path.join(get_maya_project_dir(), "images")
+
+
+def get_maya_temp_images_dir() -> str:
+    dir = os.path.join(get_maya_images_dir(), "temp")
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    return dir
+
+
+def find_matching_files(dir, pattern):
+    search_pattern = os.path.join(dir, pattern)
+    return glob.glob(search_pattern)
 
 
 def get_sub_dirs(dir):
