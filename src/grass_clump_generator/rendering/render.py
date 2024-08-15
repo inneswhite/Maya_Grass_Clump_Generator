@@ -66,9 +66,9 @@ def load_and_configure_arnold_render():
 
 
 def prerender_settings(
-    output_dir: str,
-    image_base_name: str,
     camera_name: str,
+    output_dir: str,
+    image_base_name: str = "clump_render",
     image_format: str = "exr",
     width: int = 512,
     height: int = 512,
@@ -85,7 +85,7 @@ def prerender_settings(
         height (int, optional): Render height in pixels. Defaults to 512.
 
     Returns:
-        int: exit code - 0-success, 1-failed
+        bool: True if pre render settings configured successfully
     """
 
     import pymel.core as pm
@@ -112,6 +112,15 @@ def prerender_settings(
         pm.setAttr("defaultArnoldDriver.exrCompression", 0)
         pm.setAttr("defaultArnoldDriver.colorManagement", 2)
 
+        # resolution
+        pix_aspect = width / height
+        pix_device_aspect = pm.getAttr("defaultResolution.deviceAspectRatio")
+
+        pm.setAttr("defaultResolution.width", width)
+        pm.setAttr("defaultResolution.height", height)
+        pm.setAttr("defaultResolution.pixelAspect", pix_aspect)
+        pm.setAttr("defaultResolution.deviceAspectRatio", pix_aspect)
+
         # Set defaultRenderGlobals attributes for prefix (replace default render path)
         pm.setAttr(
             "defaultRenderGlobals.imageFilePrefix", output_file_base_name, type="string"
@@ -128,28 +137,11 @@ def prerender_settings(
 
         # Set defaultRenderGlobals attributes for animation range
         pm.setAttr("defaultRenderGlobals.animationRange", 0)
-        return 0
+        return True
     else:
         print(f"\n{pm.stackTrace()}")
         pm.error("\nError loading Arnold")
-        return 1
-
-
-def render_billboard(render_cams: list, base_name: str, resolution: list[int]):
-    import pymel.core as pm
-
-    if (
-        prerender_settings(
-            paths.get_maya_images_dir(),
-            base_name,
-            render_cams[0][0].name(),
-            "exr",
-            resolution[0],
-            resolution[1],
-        )
-        == 0
-    ):
-        pm.arnoldRender(camera=render_cams[0][0].name())
+        raise Exception("\nError loading Arnold")
 
 
 if __name__ == "__main__":

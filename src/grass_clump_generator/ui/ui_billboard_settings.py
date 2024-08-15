@@ -46,10 +46,7 @@ class BillboardSettings(QLayout):
                 ps.HEADER_UI_VALUES, "res_width", self.le_res_width.text()
             )
         )
-        if ps.read_value(ps.HEADER_UI_VALUES, "res_width"):
-            self.le_res_width.setText(
-                str(ps.read_value(ps.HEADER_UI_VALUES, "res_width"))
-            )
+        self.le_res_width.setText(ui_utils.load_persistent_ui_val("512", "res_width"))
 
         lbl_x = QLabel("x")
 
@@ -60,10 +57,7 @@ class BillboardSettings(QLayout):
                 ps.HEADER_UI_VALUES, "res_height", self.le_res_height.text()
             )
         )
-        if ps.read_value(ps.HEADER_UI_VALUES, "res_height"):
-            self.le_res_height.setText(
-                str(ps.read_value(ps.HEADER_UI_VALUES, "res_height"))
-            )
+        self.le_res_height.setText(ui_utils.load_persistent_ui_val("512", "res_height"))
 
         # Add widgets to layout
         layout_res.addWidget(lbl_res)

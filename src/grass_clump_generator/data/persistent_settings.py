@@ -4,6 +4,7 @@ from grass_clump_generator.utils import strings
 
 HEADER_UI_VALUES = "Generator UI Values"
 HEADER_SOURCE_MESHES = "Source Meshes"
+HEADER_GENERATED_MESHES = "Generated Meshes"
 
 
 def get_config_path():
