@@ -67,6 +67,7 @@ class ClumpGeneratorUI(MayaQWidgetDockableMixin, QDialog):
         self.main_layout.addWidget(self.btn_generate_clump)
 
     def on_generate_clump_pressed(self):
+        self.close()
         main.generate_clump()
 
     def get_foliage_values_arr(

@@ -1,6 +1,6 @@
 from PySide2.QtWidgets import *
 from PySide2.QtCore import Qt
-from grass_clump_generator.data import persistent_settings
+import grass_clump_generator.data.persistent_settings as ps
 
 
 class SliderSpinBox(QWidget):
@@ -33,15 +33,11 @@ class SliderSpinBox(QWidget):
 
     def on_slider_changed(self):
         self.spinbox.setValue(self.slider.value())
-        persistent_settings.write_value(
-            persistent_settings.HEADER_UI_VALUES, self.name, str(self.slider.value())
-        )
+        ps.write_value(ps.HEADER_UI_VALUES, self.name, str(self.slider.value()))
 
     def on_spinbox_changed(self):
         self.slider.setValue(self.spinbox.value())
-        persistent_settings.write_value(
-            persistent_settings.HEADER_UI_VALUES, self.name, str(self.spinbox.value())
-        )
+        ps.write_value(ps.HEADER_UI_VALUES, self.name, str(self.spinbox.value()))
 
     def get_sliderspinbox_layout(self):
         return self.layout_sliderspinbox
@@ -56,15 +52,11 @@ class SliderSpinBox(QWidget):
         return self.spinbox
 
     def set_default_values(self):
-        # Check if values already exist in ini file
-        if persistent_settings.read_value(
-            persistent_settings.HEADER_UI_VALUES, self.name
-        ):
-            self.value = int(
-                persistent_settings.read_value(
-                    persistent_settings.HEADER_UI_VALUES, self.name
-                )
-            )
+        # Check if values already exist in ini file. If not, write in the initial default value
+        if ps.read_value(ps.HEADER_UI_VALUES, self.name):
+            self.value = int(ps.read_value(ps.HEADER_UI_VALUES, self.name))
+        else:
+            ps.write_value(ps.HEADER_UI_VALUES, self.name, self.value)
 
         self.slider.setValue(self.value)
         self.spinbox.setValue(self.value)

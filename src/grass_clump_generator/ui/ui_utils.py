@@ -4,7 +4,7 @@ import shiboken2
 import os
 import sys
 import grass_clump_generator.ui.ui_utils as ui
-from grass_clump_generator.data import persistent_settings
+from grass_clump_generator.data import persistent_settings as ps
 
 
 def maya_main_window():
@@ -39,19 +39,16 @@ def get_icon_file(file_name: str):
     return rel_icon_path
 
 
-def load_persistent_ui_val(fallback, name):
-    if persistent_settings.read_value(persistent_settings.HEADER_UI_VALUES, name):
-        return persistent_settings.read_value(
-            persistent_settings.HEADER_UI_VALUES, name
-        )
+def load_persistent_ui_val(fallback, name: str):
+    if ps.read_value(ps.HEADER_UI_VALUES, name):
+        return ps.read_value(ps.HEADER_UI_VALUES, name)
     else:
+        ps.write_value(ps.HEADER_UI_VALUES, str(name), str(fallback))
         return fallback
 
 
 def store_ui_value(widget, name):
-    persistent_settings.write_value(
-        persistent_settings.HEADER_UI_VALUES, str(name), str(widget.value())
-    )
+    ps.write_value(ps.HEADER_UI_VALUES, str(name), str(widget.value()))
 
 
 if __name__ == "__main__":

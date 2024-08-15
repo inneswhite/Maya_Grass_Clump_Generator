@@ -4,6 +4,7 @@ import math
 from grass_clump_generator.rendering.camera import BillboardCameras
 import grass_clump_generator.rendering.render as renderer
 import grass_clump_generator.data.persistent_settings as ps
+from .utils import paths
 
 
 def lerp(min, max, blend):
@@ -19,14 +20,10 @@ class GrassClumpGenerator:
         rotation_variation: float = 360,
         scale_variation: float = 20,
         scale_distance: float = 20,
-        render_billboards: bool = True,
-        render_name: str = "render",
-        render_resolution: list[int] = [512, 512],
     ):
         import pymel.core as pm
 
         foliage_names = ps.read_value(ps.HEADER_SOURCE_MESHES)
-        print(f"foliage names: {foliage_names}")
         self.foliage_values = []
         self.foliage_objs = []
         if foliage_arr == ["undefined"]:
@@ -35,27 +32,18 @@ class GrassClumpGenerator:
                 self.foliage_values.append(
                     int(ps.read_value(ps.HEADER_UI_VALUES, name))
                 )
-
         self.total_foliage_count = total_foliage_count
         self.distribution_radius = distribution_radius
         self.rotation_variation = rotation_variation
         self.scale_variation = scale_variation
         self.scale_distance = scale_distance
 
-        # render params
-        self.render_billboards = render_billboards
-        self.render_name = render_name
-        self.render_resolution = render_resolution
-
     def convert_ratio_decimal(self, ratios: list[int]) -> list[float]:
-        print(f"ratios = {ratios}")
         ratio_total = sum(ratios)
         decimals = []
         for i in ratios:
-            print(f"i = {i}")
             decimals.append(i / ratio_total)
 
-        print(f"\nRatio Total = {ratio_total}\nDecimals = {decimals}\n")
         return decimals
 
     def calculate_number_of_foliage(
@@ -98,6 +86,7 @@ class GrassClumpGenerator:
                 _instance = pm.duplicate(foliage_type_obj)
                 pm.parent(_instance, world=True)
                 foliage_instances[foliage_type_i].append(_instance[0])
+        print(f"foliage instances {foliage_instances}")
         return foliage_instances
 
     def position_instance(self, foliage_instance, radius: float):
@@ -153,6 +142,14 @@ class GrassClumpGenerator:
                 )
 
     def merge_instances(self, foliage_instances):
+        """Merges all the individual foliage pieces into one clump.
+
+        Args:
+            foliage_instances (list): list of all foliage pieces to be merged
+
+        Returns:
+            pm.transform: Merged grass clump
+        """
         import pymel.core as pm
 
         name = "Generated_Veg_Clump"
@@ -162,7 +159,11 @@ class GrassClumpGenerator:
         return pm.polyUnite(constructionHistory=False, name=name)
 
     def generate(self):
-        """Begin Grass Clump Generation"""
+        """Begin Grass Clump Generation
+
+        Returns:
+            pm.transform: Grass Clump
+        """
 
         print(f"Generating foliage from {self.foliage_objs}")
         # Calculate foliage ratios from UI values
@@ -172,16 +173,6 @@ class GrassClumpGenerator:
 
         # Grass Clump mesh
         self.foliage_instances = self.create_instances(target_foliage_ratios)
+
         self.transform_instances(self.foliage_instances)
-        self.merge_instances(self.foliage_instances)
-
-        # Render billboard
-        if not self.render_billboards:
-            return 0
-
-        camera_render = BillboardCameras()
-        camera_render.create_cameras()
-
-        renderer.render_billboard(
-            camera_render.get_cameras(), self.render_name, self.render_resolution
-        )
+        return self.merge_instances(self.foliage_instances)

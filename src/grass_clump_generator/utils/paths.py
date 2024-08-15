@@ -15,7 +15,12 @@ def get_maya_scripts_dir():
     return os.path.join(get_maya_project_dir(), "scripts")
 
 
-def get_maya_images_dir():
+def get_maya_images_dir() -> str:
+    """Returns the Project Images directory path
+
+    Returns:
+        str: Maya Project Images directory path
+    """
     return os.path.join(get_maya_project_dir(), "images")
 
 
