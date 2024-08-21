@@ -59,7 +59,6 @@ class GrassClumpGenerator:
             list[int]: A list of the same length as the input ratios list, but with the number of each foliage that should be created.
         """
         foliage_decimals = self.convert_ratio_decimal(foliage_ratios)
-        print(f"\nFoliage Decimals = {foliage_decimals}\nTotal Count = {total_count}")
         foliage_count = []
         for decimal in foliage_decimals:
             foliage_count.append(round(float(decimal) * float(total_count)))
@@ -86,7 +85,6 @@ class GrassClumpGenerator:
                 _instance = pm.duplicate(foliage_type_obj)
                 pm.parent(_instance, world=True)
                 foliage_instances[foliage_type_i].append(_instance[0])
-        print(f"foliage instances {foliage_instances}")
         return foliage_instances
 
     def position_instance(self, foliage_instance, radius: float):
@@ -155,7 +153,6 @@ class GrassClumpGenerator:
         name = "Generated_Veg_Clump"
         pm.select(deselect=True)
         pm.select(foliage_instances)
-        print(f"Instances for combine are {foliage_instances} \n")
         return pm.polyUnite(constructionHistory=False, name=name)
 
     def generate(self):
@@ -165,7 +162,6 @@ class GrassClumpGenerator:
             pm.transform: Grass Clump
         """
 
-        print(f"Generating foliage from {self.foliage_objs}")
         # Calculate foliage ratios from UI values
         target_foliage_ratios = self.calculate_number_of_foliage(
             self.foliage_values, self.total_foliage_count

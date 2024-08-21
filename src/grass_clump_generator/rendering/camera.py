@@ -23,7 +23,6 @@ class BillboardCameras:
     ):
         import pymel.core as pm
 
-        print(f"Moving {self.front_camera[0]} to {front_camera_pos}")
         pm.move(self.front_camera[0], front_camera_pos)
         pm.move(self.right_camera[0], right_camera_pos)
 
@@ -56,7 +55,6 @@ class BillboardCameras:
         # adjust orthographic width
         bounding_min = pm.getAttr(target[0] + ".boundingBoxMin")
         bounding_max = pm.getAttr(target[0] + ".boundingBoxMax")
-        print(f"bounding min = {bounding_min}, bounding max = {bounding_max}")
 
         height = abs(bounding_min[1] - bounding_max[1])
         width = abs(bounding_min[0] - bounding_max[0])
@@ -84,11 +82,8 @@ class BillboardCameras:
         # align camera position
         pm.select(target)
 
-        pm.move(self.front_camera[0], 0.5 * height, moveY=True, relative=True)
-        pm.move(self.right_camera[0], 0.5 * height, moveY=True, relative=True)
-
-        # pm.viewFit(self.front_camera, all=False)
-        # pm.viewFit(self.front_camera, all=False)
+        pm.move(self.front_camera[0], 0.5 * height, moveY=True, relative=False)
+        pm.move(self.right_camera[0], 0.5 * height, moveY=True, relative=False)
 
     def generate(self):
         self.create_cameras()
