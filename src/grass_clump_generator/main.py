@@ -52,10 +52,14 @@ def generate_clump():
 
     paths.open_path(clump_renderer.render_clump(clump_mesh))
 
+    original_material = material.get_shading_group(clump_mesh[0])
     # apply normal material
-    pm.sets(material.tan_nrm_mat()[1], forceElement=clump_mesh)
+    material.apply_shading_group(material.tan_nrm_mat(), clump_mesh)
 
     paths.open_path(clump_renderer.render_clump(clump_mesh, render_normals=True))
+
+    # restore original material
+    material.apply_shading_group(original_material, clump_mesh[0])
 
 
 def start():

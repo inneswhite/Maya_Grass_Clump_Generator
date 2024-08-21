@@ -9,6 +9,12 @@ def tan_nrm_mat(name: str = "mat_tangent_nrm"):
     """
     import pymel.core as pm
 
+    # Check if normal material already exists
+    if pm.PyNode(name):
+        node = pm.PyNode(name)
+        sg = node.shadingGroups()[0]
+        return sg
+
     sampler_info = pm.shadingNode("samplerInfo", asUtility=True)
 
     nrm_mat = pm.shadingNode("aiFlat", asShader=True, name=name)
@@ -18,10 +24,10 @@ def tan_nrm_mat(name: str = "mat_tangent_nrm"):
 
     sampler_info.normalCamera >> nrm_mat.color
     nrm_mat.outColor >> nrm_sg.surfaceShader
-    return [nrm_mat, nrm_sg]
+    return nrm_sg
 
 
-def get_material(obj):
+def get_shading_group(obj):
     """Finds the first material applied to a given object,
 
     Args:
@@ -32,9 +38,14 @@ def get_material(obj):
         AttributeError: Shading group could not be found on object
 
     Returns:
-        material: the first material applied to the object
+        sg: the first shading group applied to the given object
     """
     import pymel.core as pm
+
+    if hasattr(obj, "__len__"):
+        raise Exception(
+            f"Cannot get shading group on multiple objects.\n{obj} was given."
+        )
 
     # get all shaders
     shading_engine = pm.ls(type="shadingEngine")
@@ -46,24 +57,31 @@ def get_material(obj):
 
     # cycle through dictionary, and look for a mesh match.
     for sg, meshes in sg_mesh.items():
-        if meshes:
-            for mesh in meshes:
-                # convert faces to meshes
-                if isinstance(mesh, pm.MeshFace):
-                    mesh = mesh.node()
+        for mesh in meshes:
+            # convert faces to meshes
+            if isinstance(mesh, pm.MeshFace):
+                mesh = mesh.node()
 
-                # convert meshes to transforms
-                if isinstance(mesh, pm.nt.Mesh):
-                    mesh = mesh.getTransform()
+            # convert meshes to transforms
+            if isinstance(mesh, pm.nt.Mesh):
+                mesh = mesh.getTransform()
 
-                if mesh == obj:
-                    return sg
-            raise Exception(f"Could not find any materials applied to {obj}.")
-        else:
-            raise Exception(f"Could not find meshes in scene.")
+            if mesh == obj:
+                return sg
+    raise Exception(f"Could not find any materials applied to {obj}.")
+
+
+def apply_shading_group(sg, obj):
+    import pymel.core as pm
+
+    if not pm.nodeType(sg) == "shadingEngine":
+        raise Exception(f"{sg} is not of type 'shadingEngine' and cannot be applied.")
+    pm.sets(sg, forceElement=obj)
 
 
 def convert_to_unlit(material):
+    import pymel.core as pm
+
     # create new material
     name = "tmp_unlit"
     unlit_mat = pm.shadingNode("aiFlat", asShader=True, name=name)
@@ -81,4 +99,4 @@ def flat_albedo_mat(name):
 if __name__ == "__main__":
     import pymel.core as pm
 
-    get_material(pm.selected()[0])
+    get_shading_group(pm.selected()[0])

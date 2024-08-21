@@ -1,10 +1,8 @@
 # import pymel.core as pm
 import random
 import math
-from grass_clump_generator.rendering.camera import BillboardCameras
-import grass_clump_generator.rendering.render as renderer
+from grass_clump_generator.rendering import material
 import grass_clump_generator.data.persistent_settings as ps
-from .utils import paths
 
 
 def lerp(min, max, blend):
@@ -153,7 +151,9 @@ class GrassClumpGenerator:
         name = "Generated_Veg_Clump"
         pm.select(deselect=True)
         pm.select(foliage_instances)
-        return pm.polyUnite(constructionHistory=False, name=name)
+        unite_obj = pm.polyUnite(constructionHistory=True, name=name)
+
+        return unite_obj
 
     def generate(self):
         """Begin Grass Clump Generation
@@ -171,4 +171,14 @@ class GrassClumpGenerator:
         self.foliage_instances = self.create_instances(target_foliage_ratios)
 
         self.transform_instances(self.foliage_instances)
-        return self.merge_instances(self.foliage_instances)
+
+        # Get material from first foliage instance
+        clump_sg = material.get_shading_group(self.foliage_instances[0][0])
+
+        # merge instances into single clump mesh
+        clump = self.merge_instances(self.foliage_instances)
+
+        # apply original material to new clump mesh
+        material.apply_shading_group(clump_sg, clump)
+
+        return clump

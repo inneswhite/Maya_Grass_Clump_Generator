@@ -86,6 +86,8 @@ def render_clump(clump_mesh, render_normals: bool = False):
     print("Configuring Render Settings...")
 
     temp_render_dir = paths.get_maya_temp_images_dir()
+    paths.clear_directory(temp_render_dir)
+
     temp_front_base_name = (
         f"temp_{render_out_name}_{camera_render.get_cameras()[0][0].name()}"
     )

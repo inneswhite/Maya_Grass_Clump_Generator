@@ -66,3 +66,17 @@ def open_path(path: str):
         file (str): path to file or directory
     """
     os.startfile(path)
+
+
+def clear_directory(path: str):
+    """_summary_
+
+    Args:
+        path (str): _description_
+    """
+    if os.path.exists(path) and os.path.isdir(path):
+        for file in os.listdir(path):
+            file_path = os.path.join(path, file)
+            os.unlink(file_path)
+    else:
+        raise Exception(f"{path} does not exist, or is not a directory.")
