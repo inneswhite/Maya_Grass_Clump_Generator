@@ -57,3 +57,12 @@ def diff_paths(path1: str, path2: str) -> list[str]:
     """
 
     return [path2.replace(path1, ""), path2.replace(path1, "")]
+
+
+def open_path(path: str):
+    """Files will be run, directories will be opened in explorer
+
+    Args:
+        file (str): path to file or directory
+    """
+    os.startfile(path)

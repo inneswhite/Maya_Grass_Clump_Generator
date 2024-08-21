@@ -66,6 +66,7 @@ def merge_renders(
         paths.get_maya_images_dir(), (render_out_name + ".tif")
     )
     merged_image.save(merged_output_name)
+    return merged_output_name
 
 
 def render_clump(clump_mesh, render_normals: bool = False):
@@ -115,6 +116,8 @@ def render_clump(clump_mesh, render_normals: bool = False):
     if render_normals:
         render_out_name = render_out_name + "_N"
 
-    merge_renders(
+    output = merge_renders(
         temp_render_dir, temp_front_base_name, temp_right_base_name, render_out_name
     )
+
+    return output

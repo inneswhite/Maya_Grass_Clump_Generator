@@ -50,12 +50,12 @@ def generate_clump():
     if not ps.read_value(ps.HEADER_UI_VALUES, "render_enabled"):
         return True
 
-    clump_renderer.render_clump(clump_mesh)
+    paths.open_path(clump_renderer.render_clump(clump_mesh))
 
     # apply normal material
     pm.sets(material.tan_nrm_mat()[1], forceElement=clump_mesh)
 
-    clump_renderer.render_clump(clump_mesh, render_normals=True)
+    paths.open_path(clump_renderer.render_clump(clump_mesh, render_normals=True))
 
 
 def start():
